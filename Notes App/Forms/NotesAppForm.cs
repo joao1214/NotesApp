@@ -5,6 +5,7 @@ namespace Notes_App
     public partial class NotesAppForm : Form
     {
         private readonly INoteService _noteService;
+        private bool IsDarkMode { get; set; } = false;
 
         public NotesAppForm(INoteService noteService)
         {
@@ -13,9 +14,9 @@ namespace Notes_App
             InitializeUI();
         }
 
-        private void InitializeUI()
+        private async void InitializeUI()
         {
-            UpdateNoteList();
+            await UpdateNoteList();
         }
 
         private async Task UpdateNoteList()
@@ -65,11 +66,11 @@ namespace Notes_App
             }
         }
 
-        private void ClearAll()
+        private async void ClearAll()
         {
             txtFilename.Clear();
             txtNote.Clear();
-            UpdateNoteList();
+            await UpdateNoteList();
         }
 
         private async void Lst_ListNotes_SelectedIndexChanged(object sender, EventArgs e)
@@ -114,7 +115,7 @@ namespace Notes_App
                     if (deletionSuccessful)
                     {
                         ShowSuccessMessage($"Note '{filename}' deleted successfully.");
-                        UpdateNoteList();
+                        await UpdateNoteList();
                         ClearAll();
                     }
                     else
@@ -129,14 +130,66 @@ namespace Notes_App
             }
         }
 
-        private void ShowSuccessMessage(string message)
+        private void ToggleDarkMode()
         {
-            MessageBox.Show(message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            bool success = false;
+            UpdateUIVisibility(success);
+
+            if (IsDarkMode)
+            {
+                success = ApplyLightTheme();
+            }
+            else
+            {
+                success = ApplyDarkTheme();
+            }
+
+            UpdateUIVisibility(success);
         }
 
-        private void ShowErrorMessage(string message)
+        private void UpdateUIVisibility(bool status)
         {
-            MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            lbl_Title.Visible = status;
+            lbl_filename.Visible = status;
+            txtFilename.Visible = status; 
+            picbox_swModes.Visible = status;
         }
+
+        private bool ApplyDarkTheme()
+        {
+            lbl_Title.ForeColor = Color.WhiteSmoke;
+            lbl_filename.ForeColor = Color.WhiteSmoke;
+            txtFilename.BackColor = Color.DimGray;
+            txtFilename.ForeColor = Color.WhiteSmoke;
+
+            this.BackgroundImage = Properties.Resources.background_dark;
+            picbox_swModes.BackgroundImage = Properties.Resources.swmode_dark;
+
+            IsDarkMode = true;
+            return true;
+        }
+
+        private bool ApplyLightTheme()
+        {
+            lbl_Title.ForeColor = Color.DimGray;
+            lbl_filename.ForeColor = Color.DimGray;
+            txtFilename.BackColor = Color.WhiteSmoke;
+            txtFilename.ForeColor = Color.DimGray;
+
+            this.BackgroundImage = Properties.Resources.background_light;
+            picbox_swModes.BackgroundImage = Properties.Resources.swmode_light;
+
+            IsDarkMode = false; 
+            return true;
+
+        }
+        private void Picbox_swModes_Click(object sender, EventArgs e)
+        {
+            ToggleDarkMode();
+        }
+
+        private static void ShowSuccessMessage(string message) => MessageBox.Show(message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        private static void ShowErrorMessage(string message) => MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 }
